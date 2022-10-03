@@ -1,0 +1,91 @@
+---
+- !group
+  id: admins
+  owner: !user admin
+
+- !user
+  id: admin01
+  owner: !group admins
+
+- !permit
+  role: !group admins
+  privileges: [read,update,create]
+  resource: !policy root
+
+- !grant
+  role: !group admins
+  members: 
+    - !user admin01
+
+- !policy
+  id: kubernetes
+  owner: !group admins
+
+- !group
+  id: kubernetes/managers
+  owner: !group admins
+
+- !policy
+  id: kubernetes/applications
+  owner: !group kubernetes/managers
+
+- !user
+  id: k8s-manager01
+  owner: !group kubernetes/managers
+
+- !grant
+  role: !group kubernetes/managers
+  members: 
+    - !user k8s-manager01
+  
+- !layer
+  id: kubernetes/applications/jwt
+  owner: !group kubernetes/managers
+
+- !policy
+  id: kubernetes/applications/safe
+  owner: !group kubernetes/managers
+  body:
+  - &safe1-secrets
+    - !variable
+      id: secret1
+      owner: !group ../../managers
+    - !variable
+      id: secret2
+      owner: !group ../../managers
+    - !variable
+      id: secret3
+      owner: !group ../../managers
+    - !variable
+      id: secret4
+      owner: !group ../../managers
+    - !variable
+      id: secret5
+      owner: !group ../../managers
+    - !variable
+      id: secret6
+      owner: !group ../../managers
+    - !variable
+      id: secret7
+      owner: !group ../../managers
+    - !variable
+      id: secret8
+      owner: !group ../../managers
+  
+  - !permit
+    role: !layer ../jwt
+    privileges: [ read, execute ]
+    resource: *safe1-secrets
+
+- !host
+  id: kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct
+  owner: !group kubernetes/managers
+  annotations:
+    authn-jwt/k8s-cluster1/kubernetes.io/namespace: conjur
+    authn-jwt/k8s-cluster1/kubernetes.io/serviceaccount/name: conjur-demo-acct
+
+- !grant
+  roles:
+    - !layer kubernetes/applications/jwt
+  members:
+    - !host kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct

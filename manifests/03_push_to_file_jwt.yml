@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conjur-connect-jwt
+  namespace: conjur
+  labels:
+    app.kubernetes.io/name: "conjur-connect-configmap-jwt"
+    app.kubernetes.io/instance: "conjur-jwt-configmap"
+    app.kubernetes.io/part-of: "conjur-config"
+    conjur.org/name: "conjur-connect-configmap-jwt"
+data:
+  CONJUR_ACCOUNT: demo
+  CONJUR_APPLIANCE_URL: "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443"
+  CONJUR_AUTHN_URL: "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443/authn-jwt/k8s-cluster1"
+  CONJUR_AUTHENTICATOR_ID: "k8s-cluster1"
+  CONJUR_VERSION: "5"
+  CONJUR_SSL_CERTIFICATE: |- 
+    -----BEGIN CERTIFICATE-----
+    MIID4zCCAsugAwIBAgIJAPEHHt3JDuKTMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNV
+    BAYTAlVTMRIwEAYDVQQIDAlXaXNjb25zaW4xEDAOBgNVBAcMB01hZGlzb24xETAP
+    BgNVBAoMCEN5YmVyQXJrMQ0wCwYDVQQLDARPbnl4MQ4wDAYDVQQDDAVwcm94eTAe
+    Fw0yMjEwMDMxNjI2MDFaFw0yMzEwMDMxNjI2MDFaMGUxCzAJBgNVBAYTAlVTMRIw
+    EAYDVQQIDAlXaXNjb25zaW4xEDAOBgNVBAcMB01hZGlzb24xETAPBgNVBAoMCEN5
+    YmVyQXJrMQ0wCwYDVQQLDARPbnl4MQ4wDAYDVQQDDAVwcm94eTCCASIwDQYJKoZI
+    hvcNAQEBBQADggEPADCCAQoCggEBANkwzP0bw1voNv5v3MgYHCad+R3zvQXZlW+v
+    tGm/BNYU0rlUmHgCd6blToDa+RVSgTMChM15drnoXRrg4SMswFoi71Gj9+0Q4ObK
+    XqIFOvxeL4NDVI6YyiVZ+SKzJu9vyHRYUR5vaNnx64oLIW+GsyRhaP64ActHn/3z
+    Jhq4Z2wK8+MH+KdAdVwr5Eh7aYfom6Mjnxz3yuhCuOjv5lOpq367PaiNMgrHpIRf
+    GV82VXZ5ZFzdj1aBgTi1nlB7Z32xAaKuVnXzDbOB1tkLSjGSCz1WNyMSd39WD6jd
+    JjUwQM2SxL8GaWmEBeBfPDTod+e+yAtgNBWy3+9kPh2X6HdnB3kCAwEAAaOBlTCB
+    kjCBjwYDVR0RBIGHMIGEgglsb2NhbGhvc3SCBXByb3h5gjJlYzItMzUtMTc4LTI0
+    NC0xMzAuZXUtd2VzdC0yLmNvbXB1dGUuYW1hem9uYXdzLmNvbYIqaXAtMTcyLTE2
+    LTAtMTI4LmV1LXdlc3QtMi5jb21wdXRlLmludGVybmFshwR/AAABhwQjsvSChwSs
+    EACAMA0GCSqGSIb3DQEBCwUAA4IBAQBoojJNg5MrGbpOFaDl7JxVS/I3T5YOuYIs
+    s3Xw3MUDDX62cjQ1d26Z2H6n+a7j1GE7+oONGeWnDO8mMtdsHGEWW96UxQMMxqTr
+    kY7kn6j/DuSm4EYw6Z525QPaeDezMSktXddpEOB38qvFzheTHjalddIbTmJrQD7X
+    b2tnfr9/c5d9OPaN3jKmXxdEkB19eBdwcKyD83qr80+jQR3y/ecR6/DzNFzabFwb
+    aR2NlROlgVfw01OkimcNziQpfWW5PF+LoWhpbq8nCJ1kWN/QzAYceiLoXMq4Es0V
+    JRCkcqZidvQZrvvjMk9yuNJgHQ8DICA8pc/yajVZBJSma3tQXeBT
+    -----END CERTIFICATE-----
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: conjur-push-to-file
+  name: demo-sidecar-push-to-file-jwt
+  namespace: conjur
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conjur-push-to-file
+  template:
+    metadata:
+      labels:
+        app: conjur-push-to-file
+      annotations:
+        conjur.org/container-mode: sidecar
+        conjur.org/secrets-destination: file
+        conjur.org/conjur-secrets-policy-path.safe1: kubernetes/applications/safe/
+        conjur.org/conjur-secrets.safe1: |
+          - secret3: secret4
+          - secret7: secret7
+        conjur.org/secret-file-path.safe1: "./credentials.yaml"
+        conjur.org/secret-file-format.safe1: "yaml"
+        conjur.org/secrets-refresh-interval: 1m
+        conjur.org/secrets-refresh-enabled: "true"
+    spec:
+      serviceAccountName: conjur-demo-acct
+      containers:
+      - name: demo-application
+        image: centos:latest
+        imagePullPolicy: Always
+        command: ["sleep"]
+        args: ["infinity"]
+        volumeMounts:
+          - name: conjur-secrets
+            mountPath: /opt/secrets/conjur
+            readOnly: true
+      - name: sidecar-push-to-file
+        image: 'cyberark/secrets-provider-for-k8s:latest'
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        envFrom:
+        - configMapRef:
+            name: conjur-connect-jwt
+        volumeMounts:
+          - name: podinfo
+            mountPath: /conjur/podinfo
+          - name: conjur-secrets
+            mountPath: /conjur/secrets
+      volumes:
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "annotations"
+                fieldRef:
+                  fieldPath: metadata.annotations
+        - name: conjur-secrets
+          emptyDir:
+            medium: Memory
