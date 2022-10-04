@@ -23,15 +23,6 @@ services:
     volumes:
      - ./conf/tls/:/tmp/conf
 
-  bot_app:
-    image: cfmanteiga/alpine-bash-curl-jq
-    privileged: true
-    container_name: bot_app
-    command: tail -F anything
-    volumes:
-    - ./program.sh:/tmp/program.sh
-    restart: on-failure
-
   database:
     image: postgres:10.16
     container_name: postgres_database
@@ -76,11 +67,3 @@ services:
     - openssl
     restart: on-failure
 
-  client:
-    image: cyberark/conjur-cli:5
-    container_name: conjur_client
-    depends_on: [ proxy ]
-    entrypoint: sleep
-    command: infinity
-    volumes:
-    - ./conf/policy:/policy
