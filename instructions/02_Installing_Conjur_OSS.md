@@ -75,7 +75,7 @@ docker-compose exec conjur conjurctl account create demo > admin_data
 **6. Connect to Conjur server with the CLI and the admin account**
 
 ```bash
-conjur init -s -u https://$(hostname -f) -a demo
+conjur init -s -u https://$(hostname -f):8433 -a demo
 ```
 Output example:
 ```bash
