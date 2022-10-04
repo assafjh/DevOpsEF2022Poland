@@ -1,4 +1,5 @@
 #!/bin/bash
+# Populate safe secrets with values
 safe_path=kubernetes/applications/safe/secret
 conjur whoami
 for i in {1..8}
@@ -11,11 +12,8 @@ do
     fi
 done
 
+# Populate authenticator values
 conjur variable set -i conjur/authn-jwt/k8s-cluster1/identity-path -v "/kubernetes/applications"
 conjur variable set -i conjur/authn-jwt/k8s-cluster1/issuer -v "$(echo $(kubectl get --raw /.well-known/openid-configuration | awk -F "," '{print $1}' | tr -d '",' | sed 's#{issuer:##g'))"
 conjur variable set -i conjur/authn-jwt/k8s-cluster1/token-app-property -v "sub"
 conjur variable set -i conjur/authn-jwt/k8s-cluster1/public-keys -v "$(echo '{"type": "jwks","value":'$(kubectl get --raw /openid/v1/jwks)'}')"
-
-# evoke variable set CONJUR_AUTHENTICATORS authn,authn-jwt/k8s-cluster1
-
-# docker-compose exec conjur bash -c "export CONJUR_AUTHENTICATORS=authn,authn-jwt/k8s-cluster1;conjurctl config show;conjurctl config apply; conjurctl wait"

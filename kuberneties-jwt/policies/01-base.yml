@@ -36,6 +36,11 @@
   privileges: [read,update,create]
   resource: !policy kubernetes
 
+- !permit
+  role: !group kubernetes/managers
+  privileges: [read,update,create]
+  resource: !group kubernetes/managers
+
 - !user
   id: k8s-manager01
   owner: !group kubernetes/managers

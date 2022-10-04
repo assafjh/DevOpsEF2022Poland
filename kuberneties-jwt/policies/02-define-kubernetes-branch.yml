@@ -1,20 +1,20 @@
 ---
-# Load policy into root branch
+# Load policy into kubernetes branch
 # This policy defines the demo branch kubernetes
 
 - !policy
-  id: kubernetes/applications
-  owner: !group kubernetes/managers
+  id: applications
+  owner: !group managers
 
-# kubernetes/applications/jwt is a layer that will aggregate permissions for all kubernetes applications that want to use JWT to consume Conjur secrets
+# applications/jwt is a layer that will aggregate permissions for all kubernetes applications that want to use JWT to consume Conjur secrets
 - !layer
-  id: kubernetes/applications/jwt
-  owner: !group kubernetes/managers
+  id: applications/jwt
+  owner: !group managers
 
 # create secrets
 - !policy
-  id: kubernetes/applications/safe
-  owner: !group kubernetes/managers
+  id: applications/safe
+  owner: !group managers
   body:
   - &safe1-secrets
     - !variable
@@ -42,7 +42,7 @@
       id: secret8
       owner: !group ../../managers
 
- # Allow kubernetes/applications/jwt layer to consume the secrets we have created
+ # Allow applications/jwt layer to consume the secrets we have created
   - !permit
     role: !layer ../jwt
     privileges: [ read, execute ]
@@ -50,8 +50,8 @@
 
 # Create the JWT identity that we will use to authenticate to Conjur 
 - !host
-  id: kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct
-  owner: !group kubernetes/managers
+  id: applications/system:serviceaccount:conjur:conjur-demo-acct
+  owner: !group managers
   annotations:
     authn-jwt/k8s-cluster1/kubernetes.io/namespace: conjur
     authn-jwt/k8s-cluster1/kubernetes.io/serviceaccount/name: conjur-demo-acct
@@ -59,13 +59,14 @@
 # Add the host we have created to the layer 
 - !grant
   roles:
-    - !layer kubernetes/applications/jwt
+    - !layer applications/jwt
   members:
-    - !host kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct
+    - !host applications/system:serviceaccount:conjur:conjur-demo-acct
 
 # This policy defines a JWT authenticator to be used with Kubernetis cluster
 - !policy
   id: conjur/authn-jwt/k8s-cluster1
+  owner: !group managers
   body:
   - !webservice
 
@@ -102,6 +103,6 @@
   #   id: audience
   
   - !permit
-    role: !layer ../../../kubernetes/applications/jwt
+    role: !layer ../../../applications/jwt
     privilege: [ read, authenticate ]
     resource: !webservice
