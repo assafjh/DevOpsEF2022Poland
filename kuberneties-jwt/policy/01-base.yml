@@ -1,0 +1,145 @@
+---
+# Load policy into root branch
+# This policy defines a demo organization that uses kubernetes applications
+
+# Define Admins, create admins group, create admin01 user
+- !group
+  id: admins
+  owner: !user admin
+
+- !user
+  id: admin01
+  owner: !group admins
+
+- !permit
+  role: !group admins
+  privileges: [read,update,create]
+  resource: !policy root
+
+- !grant
+  role: !group admins
+  members: 
+    - !user admin01
+
+# Define Kuebenetes branch, create users, hosts, groups, layers, variables
+- !policy
+  id: kubernetes
+  owner: !group admins
+
+# kubernetes/managers group will admin everything under kubernetes branch
+- !group
+  id: kubernetes/managers
+  owner: !group admins
+
+- !policy
+  id: kubernetes/applications
+  owner: !group kubernetes/managers
+
+- !user
+  id: k8s-manager01
+  owner: !group kubernetes/managers
+
+- !grant
+  role: !group kubernetes/managers
+  members: 
+    - !user k8s-manager01
+
+# kubernetes/applications/jwt is a layer that will aggregate permissions for all kubernetes applications that want to use JWT to consume Conjur secrets
+- !layer
+  id: kubernetes/applications/jwt
+  owner: !group kubernetes/managers
+
+# create secrets
+- !policy
+  id: kubernetes/applications/safe
+  owner: !group kubernetes/managers
+  body:
+  - &safe1-secrets
+    - !variable
+      id: secret1
+      owner: !group ../../managers
+    - !variable
+      id: secret2
+      owner: !group ../../managers
+    - !variable
+      id: secret3
+      owner: !group ../../managers
+    - !variable
+      id: secret4
+      owner: !group ../../managers
+    - !variable
+      id: secret5
+      owner: !group ../../managers
+    - !variable
+      id: secret6
+      owner: !group ../../managers
+    - !variable
+      id: secret7
+      owner: !group ../../managers
+    - !variable
+      id: secret8
+      owner: !group ../../managers
+
+ # Allow kubernetes/applications/jwt layer to consume the secrets we have created
+  - !permit
+    role: !layer ../jwt
+    privileges: [ read, execute ]
+    resource: *safe1-secrets
+
+# Create the JWT identity that we will use to authenticate to Conjur 
+- !host
+  id: kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct
+  owner: !group kubernetes/managers
+  annotations:
+    authn-jwt/k8s-cluster1/kubernetes.io/namespace: conjur
+    authn-jwt/k8s-cluster1/kubernetes.io/serviceaccount/name: conjur-demo-acct
+
+# Add the host we have created to the layer 
+- !grant
+  roles:
+    - !layer kubernetes/applications/jwt
+  members:
+    - !host kubernetes/applications/system:serviceaccount:conjur:conjur-demo-acct
+
+# This policy defines a JWT authenticator to be used with Kubernetis cluster
+- !policy
+  id: conjur/authn-jwt/k8s-cluster1
+  body:
+  - !webservice
+
+  # Uncomment one of following variables depending on the public availability
+  # of the Service Account Issuer Discovery service in Kubernetes 
+  # If the service is publicly available, uncomment 'jwks-uri'.
+  # If the service is not available, uncomment 'public-keys'
+
+  # - !variable
+  #   id: jwks-uri
+
+  - !variable
+    id: public-keys
+
+  # This variable tells Conjur which claim in the JWT to use to determine the conjur host identity.
+  - !variable
+    id: token-app-property
+
+  # This variable is used with token-app-property. This variable will hold the conjur policy path that contains the conjur host identity found by looking at the claim entered in token-app-property.
+  - !variable
+    id: identity-path
+
+  # Uncomment ca-cert if the JWKS website cert isn't trusted by conjur
+
+  # - !variable
+  #   id: ca-cert
+
+  # This variable contains what "iss" in the JWT.
+  - !variable
+    id: issuer
+  
+  # This variable contains what "aud" is the JWT.
+  # - !variable
+  #   id: audience
+  
+  - !permit
+    role: !layer ../../../kubernetes/applications/jwt
+    privilege: [ read, authenticate ]
+    resource: !webservice

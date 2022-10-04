@@ -63,23 +63,31 @@ echo "Step 5: Create admin account"
 docker-compose exec -T conjur conjurctl account create demo > admin_data
 echo
 
-echo "Step 6: Connect the Conjur client to the Conjur server"
-docker container exec conjur_client conjur init -u conjur -a demo
+echo "Step 6: Deploy Conjur CLI"
+wget https://github.com/cyberark/cyberark-conjur-cli/releases/download/v7.1.0/conjur-cli-rhel-8.tar.gz
+tar -xvf conjur-cli-rhel-8.tar.gz
+chmod +x conjur
+sudo mv conjur /usr/local/bin
+echo
+
+
+echo "Step 7: Connect the Conjur client to the Conjur server"
+conjur init -f -s -u https://$(hostname -f) -a demo
 echo
 
 announce "UNIT 2. Define Policy"
 
 echo "Step 1: Log in to Conjur as admin"
 admin_api_key="$(cat admin_data | awk '/API key for admin/{print $NF}' | tr -d '\r')"
-docker-compose exec -T client conjur authn login -u admin -p ${admin_api_key}
+conjur login -i admin -p ${admin_api_key}
 echo
 
 echo "Step 2: Load the Sample Policy"
-docker-compose exec -T client conjur policy load root policy/BotApp.yml > my_app_data
+conjur policy update -b root -f policy/BotApp.yml > my_app_data
 echo
 
 echo "Step 3: Log out of Conjur as admin"
-docker-compose exec -T client conjur authn logout
+conjur logout
 echo
 
 announce "UNIT 3. Store a Secret in Conjur"
@@ -87,7 +95,7 @@ announce "UNIT 3. Store a Secret in Conjur"
 echo "Step 1: Log in as Dave"
 cat my_app_data | awk '/"api_key":/{print $NF}' | tr -d '"' > my_api_keys
 dave_api_key="$(cat my_api_keys | awk 'NR==1')"
-docker-compose exec -T client conjur authn login -u Dave@BotApp -p ${dave_api_key}
+conjur login -i Dave@BotApp -p ${dave_api_key}
 echo
 
 echo "Step 2: Generate Secret"
@@ -95,18 +103,18 @@ secretVal=$(openssl rand -hex 12 | tr -d '\r\n')
 echo
 
 echo "Step 3: Store Secret"
-docker-compose exec -T client conjur variable values add BotApp/secretVar ${secretVal}
+conjur variable set -i BotApp/secretVar -v "${secretVal}"
 echo
 
 announce "UNIT 4. Run the Demo App"
 
 echo "Step 2: Generate Conjur Token in Bot App"
 bot_api_key="$(cat my_api_keys | awk 'NR==2' | tr -d '\r')"
-docker-compose exec -T bot_app bash -c "curl -d "${bot_api_key}" -k https://proxy/authn/demo/host%2FBotApp%2FmyDemoApp/authenticate > /tmp/conjur_token"
+curl -d "<BotApp API Key>" -k https://$(hostname -f)/authn/demo/host%2FBotApp%2FmyDemoApp/authenticate > ./conjur_token
 echo
 
 echo "Step 3: Fetch Secret"
-fetched=$(docker-compose exec -T bot_app bash -c "/tmp/program.sh")
+fetched=$(./program.sh)
 echo
 
 echo "Step 4: Compare Generated and Fetched Secrets"
