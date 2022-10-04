@@ -1,4 +1,5 @@
 ---
+# This will config map will hold connection details that our sidecar will use to authenticate to Conjur
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,35 +12,14 @@ metadata:
     conjur.org/name: "conjur-connect-configmap-jwt"
 data:
   CONJUR_ACCOUNT: demo
-  CONJUR_APPLIANCE_URL: "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443"
-  CONJUR_AUTHN_URL: "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443/authn-jwt/k8s-cluster1"
+  CONJUR_APPLIANCE_URL: "https://<conjur-host>:8443"
+  CONJUR_AUTHN_URL: "https://<conjur-host>:8443/authn-jwt/k8s-cluster1"
   CONJUR_AUTHENTICATOR_ID: "k8s-cluster1"
   CONJUR_VERSION: "5"
   CONJUR_SSL_CERTIFICATE: |- 
-    -----BEGIN CERTIFICATE-----
-    MIID4zCCAsugAwIBAgIJAPEHHt3JDuKTMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNV
-    BAYTAlVTMRIwEAYDVQQIDAlXaXNjb25zaW4xEDAOBgNVBAcMB01hZGlzb24xETAP
-    BgNVBAoMCEN5YmVyQXJrMQ0wCwYDVQQLDARPbnl4MQ4wDAYDVQQDDAVwcm94eTAe
-    Fw0yMjEwMDMxNjI2MDFaFw0yMzEwMDMxNjI2MDFaMGUxCzAJBgNVBAYTAlVTMRIw
-    EAYDVQQIDAlXaXNjb25zaW4xEDAOBgNVBAcMB01hZGlzb24xETAPBgNVBAoMCEN5
-    YmVyQXJrMQ0wCwYDVQQLDARPbnl4MQ4wDAYDVQQDDAVwcm94eTCCASIwDQYJKoZI
-    hvcNAQEBBQADggEPADCCAQoCggEBANkwzP0bw1voNv5v3MgYHCad+R3zvQXZlW+v
-    tGm/BNYU0rlUmHgCd6blToDa+RVSgTMChM15drnoXRrg4SMswFoi71Gj9+0Q4ObK
-    XqIFOvxeL4NDVI6YyiVZ+SKzJu9vyHRYUR5vaNnx64oLIW+GsyRhaP64ActHn/3z
-    Jhq4Z2wK8+MH+KdAdVwr5Eh7aYfom6Mjnxz3yuhCuOjv5lOpq367PaiNMgrHpIRf
-    GV82VXZ5ZFzdj1aBgTi1nlB7Z32xAaKuVnXzDbOB1tkLSjGSCz1WNyMSd39WD6jd
-    JjUwQM2SxL8GaWmEBeBfPDTod+e+yAtgNBWy3+9kPh2X6HdnB3kCAwEAAaOBlTCB
-    kjCBjwYDVR0RBIGHMIGEgglsb2NhbGhvc3SCBXByb3h5gjJlYzItMzUtMTc4LTI0
-    NC0xMzAuZXUtd2VzdC0yLmNvbXB1dGUuYW1hem9uYXdzLmNvbYIqaXAtMTcyLTE2
-    LTAtMTI4LmV1LXdlc3QtMi5jb21wdXRlLmludGVybmFshwR/AAABhwQjsvSChwSs
-    EACAMA0GCSqGSIb3DQEBCwUAA4IBAQBoojJNg5MrGbpOFaDl7JxVS/I3T5YOuYIs
-    s3Xw3MUDDX62cjQ1d26Z2H6n+a7j1GE7+oONGeWnDO8mMtdsHGEWW96UxQMMxqTr
-    kY7kn6j/DuSm4EYw6Z525QPaeDezMSktXddpEOB38qvFzheTHjalddIbTmJrQD7X
-    b2tnfr9/c5d9OPaN3jKmXxdEkB19eBdwcKyD83qr80+jQR3y/ecR6/DzNFzabFwb
-    aR2NlROlgVfw01OkimcNziQpfWW5PF+LoWhpbq8nCJ1kWN/QzAYceiLoXMq4Es0V
-    JRCkcqZidvQZrvvjMk9yuNJgHQ8DICA8pc/yajVZBJSma3tQXeBT
-    -----END CERTIFICATE-----
+$CONJOR_PUBLIC_KEY
 ---
+# Deployment for Conjur sidecar - push to file mode
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,6 +37,7 @@ spec:
       labels:
         app: conjur-push-to-file
       annotations:
+        # Sidecar configuration
         conjur.org/container-mode: sidecar
         conjur.org/secrets-destination: file
         conjur.org/conjur-secrets-policy-path.safe1: kubernetes/applications/safe/
@@ -70,15 +51,18 @@ spec:
     spec:
       serviceAccountName: conjur-demo-acct
       containers:
+      # Our demo application
       - name: demo-application
         image: centos:latest
         imagePullPolicy: Always
         command: ["sleep"]
         args: ["infinity"]
+        # Path to the file with the secrets 
         volumeMounts:
           - name: conjur-secrets
             mountPath: /opt/secrets/conjur
             readOnly: true
+      # Sidecar
       - name: sidecar-push-to-file
         image: 'cyberark/secrets-provider-for-k8s:latest'
         imagePullPolicy: IfNotPresent
@@ -106,6 +90,7 @@ spec:
               - path: "annotations"
                 fieldRef:
                   fieldPath: metadata.annotations
+        # This is where the sidecar keeps is authentiction token recieved from Conjur
         - name: conjur-secrets
           emptyDir:
             medium: Memory

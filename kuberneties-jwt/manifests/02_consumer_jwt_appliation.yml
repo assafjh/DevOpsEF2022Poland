@@ -1,4 +1,5 @@
 ---
+# This will config map will hold our script
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,10 +9,11 @@ data:
   retrieve.sh: |
     #!/bin/bash
     JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-    token=$(curl -k -s --request POST "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443/authn-jwt/k8s-cluster1/demo/authenticate" --header 'Content-Type: application/x-www-form-urlencoded' --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT")
-    secret=$(curl -k -s -X GET -H "Authorization: Token token=\"$token\"" "https://ec2-35-178-244-130.eu-west-2.compute.amazonaws.com:8443/secrets/demo/variable/kubernetes/applications/safe/secret1")
+    token=$(curl -k -s --request POST "https://<conjur-host>/authn-jwt/k8s-cluster1/demo/authenticate" --header 'Content-Type: application/x-www-form-urlencoded' --header "Accept-Encoding: base64" --data-urlencode "jwt=$JWT")
+    secret=$(curl -k -s -X GET -H "Authorization: Token token=\"$token\"" "https://<conjur-host>:8443/secrets/demo/variable/kubernetes/applications/safe/secret1")
     echo $secret
 ---
+# Deployment for an application that consumes Conjur secrets using REST API bash script
 apiVersion: apps/v1
 kind: Deployment
 metadata:
