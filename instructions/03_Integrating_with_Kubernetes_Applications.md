@@ -4,7 +4,7 @@ By default, a Pod is associated with a service account, and a credential (token)
 
 All work in this guide will be under the **kuberneties-jwt** folder of this repo.
 
- ## Pre-Reqs
+ ## Pre-Requisites
  Step 2 outcome and will include:
 -   Conjur Instance up and running
 -   Client successfully up and running
