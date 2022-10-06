@@ -7,7 +7,7 @@ We will use the following tools for the workshop exercise:
  
  This guide will explain how to install them.
 
-## Pre-Reqs
+## Pre-Requisites
 - A 4Gb of RAM CentOS 8 Machine with 2 CPUs, 30 GB HDD
 - Access to root account
 
