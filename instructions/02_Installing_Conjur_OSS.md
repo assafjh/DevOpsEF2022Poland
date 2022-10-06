@@ -3,7 +3,7 @@
 At this exercise we will install Conjur OSS (Open Source Software).
 All work in this guide will be under the **conjur-oss** folder of this repo.
  
-## Pre-Reqs
+## Pre-Requisites
 
  1. Tools from step #1 installed.
 
