@@ -4,6 +4,7 @@ We will use the following tools for the workshop exercise:
  - Docker CE
  - docker-compose
  - K3S
+ - git (optional - you can download the repo instead)
  
  This guide will explain how to install them.
 
@@ -74,4 +75,21 @@ sudo chmod 660 /etc/rancher/k3s/k3s.yaml
 We should be able to see a master node on our VM
 ```bash
 kubectl get nodes -o wide
+```
+
+## git
+### Installation
+```bash
+sudo yum install -y git
+```
+### Test
+We should be able to call git from the CLI
+```bash
+git --version
+```
+
+### Pull
+Pull this repo
+```bash
+git clone https://github.com/assafjh/DevOpsEF2022Poland.git
 ```
