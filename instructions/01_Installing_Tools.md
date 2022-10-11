@@ -16,7 +16,7 @@ We will use the following tools for the workshop exercise:
 ```bash
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf config-manager --set-disabled docker-ce-stable
-sudo rpm --install --nodeps --replacefiles --excludepath=/usr/bin/runc https://download.docker.com/linux/centos/8/x86_64/stable/Packages/containerd.io-1.6.8-3.1.el8.x86_64.rpm
+sudo rpm --install --nodeps --replacefiles https://download.docker.com/linux/centos/8/x86_64/stable/Packages/containerd.io-1.6.8-3.1.el8.x86_64.rpm
 sudo dnf install --enablerepo=docker-ce-stable docker-ce
 sudo systemctl enable --now docker
 ```
