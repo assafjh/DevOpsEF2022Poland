@@ -29,6 +29,8 @@ newgrp docker
 ### Enable auto-completion for Docker
 ```bash
 sudo yum -y install bash-completion
+sudo curl https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker -o /etc/bash_completion.d/docker.sh
+exec bash
 ```
 ### Test
 Let's run docker hello world
