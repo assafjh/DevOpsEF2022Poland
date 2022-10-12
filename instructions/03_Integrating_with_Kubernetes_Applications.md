@@ -50,12 +50,20 @@ conjur login -i admin01
 ```
 ### 2. Examine the policies/03-define-jwt-auth.yml file and load it
 ```Bash
-conjur policy update -b kubernetes -f policies/03-define-jwt-auth.yml | tee -a 03-define-jwt-auth.log
+conjur policy update -b root -f policies/03-define-jwt-auth.yml | tee -a 03-define-jwt-auth.log
 ```
-### 3. Examine the policies/03-define-jwt-auth.log file and logout
+### 3. Examine the policies/03-define-jwt-auth.log file
+
+### 4. Populcate the secrets and JWT authenticator variables
+```Bash
+scripts/01_populate_variables.sh | tee -a 01_populate_variables.log
+```
+
+### 5. Examine the policies/01_populate_variables.log file and logout
 ```Bash
 conjur logout
 ```
+
 ## Creating infra for our deployments
 ### 1. Review manifests/01_create_infra.yml file and load it
 ```bash
