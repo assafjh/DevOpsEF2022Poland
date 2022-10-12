@@ -72,7 +72,12 @@ echo
 
 
 echo "Step 7: Connect the Conjur client to the Conjur server"
-conjur init --force -s -u https://$(hostname -f):8443 -a demo
+conjur init --force -s -u https://$(hostname -f):8443 -a demo << EOF
+yes
+yes
+yes
+yes
+EOF
 echo
 
 announce "UNIT 2. Define Policy"
@@ -120,10 +125,10 @@ echo
 echo "Step 4: Compare Generated and Fetched Secrets"
 printf "Generated:\t${secretVal}\n"
 printf "Fetched:\t${fetched##*: }\n"
-#if [[ $fetched =~ ${secretVal} ]]; then
-#  echo "Generated secret matches secret fetched by Bot App"
-#  echo "WORKFLOW PASSED."
-#else
-#  echo "Generated secret does not match the secret fetched by Bot App"
-#  exit 1
-#fi
+if [[ $fetched =~ ${secretVal} ]]; then
+  echo "Generated secret matches secret fetched by Bot App"
+  echo "WORKFLOW PASSED."
+else
+  echo "Generated secret does not match the secret fetched by Bot App"
+  exit 1
+fi
