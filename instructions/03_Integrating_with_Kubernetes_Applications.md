@@ -100,7 +100,7 @@ kubectl apply -f manifests/03_push_to_file_jwt.yml
 ```
 ### 2. Connect to the demo-application container
 ```bash
-kubectl get pods -n conjur | grep kubectl get pods -n conjur | grep demo-sidecar-push-to-file-jwt
+kubectl get pods -n conjur | grep demo-sidecar-push-to-file-jwt
 kubectl exec -i -t -n conjur <pod_name> -c demo-application -- sh -c "bash"
 ```
 ### 3. Inside the container, check that the secrets were pushed to file
