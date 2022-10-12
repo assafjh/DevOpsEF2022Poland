@@ -67,7 +67,7 @@ kubectl get ns
 ```
 ## Deploying manifest - REST API application
 ### 1. Review and modify manifests/02_consumer_jwt_appliation.yml file
-At lines #11 and #12, change <conjur-host> to your conjur host.
+At lines #12 and #13, change <conjur-host> to your conjur host.
 ### Deploy Manifest
 ```bash
 kubectl apply -f manifests/02_consumer_jwt_appliation.yml
