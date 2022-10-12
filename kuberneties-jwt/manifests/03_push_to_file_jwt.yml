@@ -42,7 +42,7 @@ spec:
         conjur.org/secrets-destination: file
         conjur.org/conjur-secrets-policy-path.safe1: kubernetes/applications/safe/
         conjur.org/conjur-secrets.safe1: |
-          - secret3: secret4
+          - secret3: secret3
           - secret7: secret7
         conjur.org/secret-file-path.safe1: "./credentials.yaml"
         conjur.org/secret-file-format.safe1: "yaml"
