@@ -1,3 +1,4 @@
+
 # Workshop guide: __Step 3__ Integrating with Kubernetes Applications
 
 By default, a Pod is associated with a service account, and a credential (token) for that service account is placed into the filesystem tree of each container in that Pod. At this exercise will use this token to authenticate against Conjur without exposing [Secret Zero](https://www.conjur.org/blog/secret-zero-eliminating-the-ultimate-secret/)
@@ -108,8 +109,14 @@ kubectl exec -i -t -n conjur <pod_name> -c demo-application -- sh -c "bash"
 cat /opt/secrets/conjur/credentials.yaml
 ```
 ### 4. Optional: If you'll update secret3 or secret7, after a minute the file will be updated
-To update secret3, for example, use the below:
+#### 4a. Login as user k8s-manager01
+- Use the API key as a password from the 01-base.log file for the user k8s-manager01
 ```bash
+conjur login -i k8s-manager01
+```
+#### 4b. To update secret3, for example, use the below:
+```bash
+conjur login -i 
 conjur variable set -i kubernetes/applications/safe/secret3 -v "new value"
 ```
 Wait for a minute and recheck the file at the container.
