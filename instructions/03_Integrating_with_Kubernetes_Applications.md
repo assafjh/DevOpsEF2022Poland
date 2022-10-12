@@ -4,7 +4,7 @@
 
 By default, a Pod is associated with a service account, and a credential (token) for that service account is placed into the filesystem tree of each container in that Pod. At this exercise will use this token to authenticate against Conjur without exposing [Secret Zero](https://www.conjur.org/blog/secret-zero-eliminating-the-ultimate-secret/)
 
-All work in this guide will be under the **kuberneties-jwt** folder of this repo.
+All work in this guide will be under the **kubernetes-jwt** folder of this repo.
 
  ## Pre-Requisites
  Step 2 outcome and will include:
