@@ -3,7 +3,7 @@
 # This policy defines a JWT authenticator to be used with Kubernetis cluster
 - !policy
   id: conjur/authn-jwt/k8s-cluster1
-  owner: !group admins
+  owner: !group managers
   body:
   - !webservice
 
@@ -40,6 +40,6 @@
   #   id: audience
   
   - !permit
-    role: !layer ../../../kubernetes/applications/jwt
+    role: !layer ../../../applications/jwt
     privilege: [ read, authenticate ]
     resource: !webservice
